@@ -1,0 +1,6 @@
+opencv-python
+numpy
+scipy
+moviepy
+librosa
+gradio
