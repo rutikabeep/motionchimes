@@ -1,6 +1,7 @@
-import moviepy.editor as mp
+from moviepy import VideoFileClip, AudioFileClip
 from motion_audio import motion_to_audio
-from overlay_boxes import MotionOverlay
+from overlay_magic import MagicOverlay
+from analysis_hud import AnalysisHUD
 import cv2
 import os
 
@@ -8,7 +9,8 @@ import os
 def apply_overlay(video_path, output_path):
 
     cap = cv2.VideoCapture(video_path)
-    overlay = MotionOverlay()
+    overlay = MagicOverlay()
+    hud = AnalysisHUD()
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -23,7 +25,10 @@ def apply_overlay(video_path, output_path):
             break
 
         overlay.detect_points(frame)
+        hud.update(overlay.last_motion_value)
+
         frame = overlay.draw_overlay(frame)
+        frame = hud.draw(frame)
 
         out.write(frame)
 
@@ -44,10 +49,10 @@ def create_motion_chimes(video_path, output_video="output.mp4"):
 
     print("Combining audio and video...")
 
-    video = mp.VideoFileClip(temp_overlay_video)
-    audio = mp.AudioFileClip(audio_path)
+    video = VideoFileClip(temp_overlay_video)
+    audio = AudioFileClip(audio_path)
 
-    final = video.set_audio(audio)
+    final = video.with_audio(audio)
 
     final.write_videofile(output_video, codec="libx264", audio_codec="aac")
 
